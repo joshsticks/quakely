@@ -4,7 +4,8 @@
 #add that data to local
 #display data
 
-getDataFromUSGS = (url, callback) -> 
+getDataFromUSGS = (callback) -> 
+	url = "http://earthquake.usgs.gov/earthquakes/shakemap/rss.xml"
 	$.ajax {
 	    url: document.location.protocol + '//ajax.googleapis.com/ajax/services/feed/load?v=1.0&num=300&callback=?&q=' + encodeURIComponent(url),
 	    dataType: 'json',
@@ -43,9 +44,12 @@ parseData = (feed) ->
 	#addItem record for record in feed.entries
 	#$("#quakes").listview('refresh');
 	#should save all that back to localstorage
+	$.mobile.hidePageLoadingMsg()
 	
 $ ->
-	url = "http://earthquake.usgs.gov/earthquakes/shakemap/rss.xml"
-	getDataFromUSGS url, parseData
-	#add dividers for last 30 days
-	#after getting data probably remove dividers where no quakes occurred
+	$.mobile.showPageLoadingMsg()
+	getDataFromUSGS parseData
+	
+	$("#refresh").click( () ->
+		$.mobile.showPageLoadingMsg()
+		getDataFromUSGS parseData)
