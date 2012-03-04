@@ -11,18 +11,31 @@ getDataFromUSGS = (url, callback) ->
 	    success: (data) -> callback data.responseData.feed
 	  }
 	
+addItem = (item) ->
+	date = new Date(item.publishedDate)
+	time = if (date.getHours() >= 12) then "<strong>" + (date.getHours() - 12) + ":" + date.getMinutes() + 
+		"</strong>PM" else "<strong>" + date.getHours() + ":" + date.getMinutes() + "</strong>AM"
+	$("#quakes").append "<li><a href='"+ item.link +
+		"'><p class='ui-li-aside ui-li-desc'>" + time + 
+		"</p><h3 class='ui-li-heading'>" + item.title + 
+		"</h3><p class='ui-li-desc'>" + item.contentSnippet + "</p></a></li>"
+		
 renderData = (items) ->
-	#add row header then iterate rows
-	$("#quakes").append '<li data-role="list-divider">' + new Date(items[0].publishedDate).toDateString() + '<span class="ui-li-count">' + items.length + '</span></li>'
-	$("#quakes").append "<li><a href='"+ item.link + "'>" + item.title + "</a></li>" for item in items
+	#sorted = _.sortBy(items, (item) -> new Date(item.publishedDate).toLocaleTimeString())
+	#reversed = sorted.reverse()
+	$("#quakes").append '<li data-role="list-divider">' + new Date(items[0].publishedDate).toLocaleDateString() + '<span class="ui-li-count">' + items.length + '</span></li>'
+	addItem item for item in items
 	$("#quakes").listview('refresh');
 
-#rename this be parse once the parsing is implemented
 parseData = (feed) ->
 	#should get from localstorage
 	#add from feed arg what isn't already in local
 	#should have listview spinny icon for loading
-	data = _.groupBy(feed.entries, (item) -> new Date(item.publishedDate).toDateString())
+	
+	#may need to get in local time and sort first
+	sorted = _.sortBy(feed.entries, (item) -> new Date(item.publishedDate))
+	reversed = sorted.reverse()
+	data = _.groupBy(reversed, (item) -> new Date(item.publishedDate).toLocaleDateString())
 	dates = _.toArray(data)
 	#now = new Date
 	#dates = ( now.setDate(now.getDate() - num) for num in[0...29] )
