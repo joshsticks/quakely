@@ -22,34 +22,30 @@ addItem = (item) ->
 		"</h3><p class='ui-li-desc'>" + item.contentSnippet + "</p></a></li>"
 		
 renderData = (items) ->
-	#sorted = _.sortBy(items, (item) -> new Date(item.publishedDate).toLocaleTimeString())
-	#reversed = sorted.reverse()
 	$("#quakes").append '<li data-role="list-divider">' + new Date(items[0].publishedDate).toLocaleDateString() + '<span class="ui-li-count">' + items.length + '</span></li>'
 	addItem item for item in items
 	$("#quakes").listview('refresh');
 
 parseData = (feed) ->
 	#should get from localstorage
-	#add from feed arg what isn't already in local
-	#should have listview spinny icon for loading
 	
-	#may need to get in local time and sort first
+	#add from feed arg what isn't already in local
 	sorted = _.sortBy(feed.entries, (item) -> new Date(item.publishedDate))
 	reversed = sorted.reverse()
 	data = _.groupBy(reversed, (item) -> new Date(item.publishedDate).toLocaleDateString())
 	dates = _.toArray(data)
-	#now = new Date
-	#dates = ( now.setDate(now.getDate() - num) for num in[0...29] )
-	renderData(date) for date in dates
-	#addItem record for record in feed.entries
-	#$("#quakes").listview('refresh');
+
 	#should save all that back to localstorage
+	renderData(date) for date in dates
+
 	$.mobile.hidePageLoadingMsg()
-	
-$ ->
+
+loadData = ->
 	$.mobile.showPageLoadingMsg()
 	getDataFromUSGS parseData
 	
+$ ->
+	loadData()
+	
 	$("#refresh").click( () ->
-		$.mobile.showPageLoadingMsg()
-		getDataFromUSGS parseData)
+		loadData())
