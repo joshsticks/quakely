@@ -4,6 +4,17 @@
 #add that data to local
 #display data
 
+#should probably refactor at this point
+#Quake class with a functioning equals operator
+#Quakes class with Array of Arrays, Quakes[Date][Quake[]]
+
+#html5 storage support check helper
+supports_html5_storage = ->
+	try
+		return 'localStorage' of window and window['localStorage'] isnt null
+	catch e
+		return false
+
 getDataFromUSGS = (callback) -> 
 	url = "http://earthquake.usgs.gov/earthquakes/shakemap/rss.xml"
 	$.ajax {
@@ -12,7 +23,7 @@ getDataFromUSGS = (callback) ->
 	    success: (data) -> callback data.responseData.feed
 	  }
 	
-addItem = (item) ->
+renderItem = (item) ->
 	date = new Date(item.publishedDate)
 	time = if (date.getHours() >= 12) then "<strong>" + (date.getHours() - 12) + ":" + date.getMinutes() + 
 		"</strong>PM" else "<strong>" + date.getHours() + ":" + date.getMinutes() + "</strong>AM"
@@ -23,17 +34,40 @@ addItem = (item) ->
 		
 renderData = (items) ->
 	$("#quakes").append '<li data-role="list-divider">' + new Date(items[0].publishedDate).toLocaleDateString() + '<span class="ui-li-count">' + items.length + '</span></li>'
-	addItem item for item in items
+	renderItem item for item in items
 	$("#quakes").listview('refresh');
 
 parseData = (feed) ->
 	#should get from localstorage
+	if supports_html5_storage()
+		if localStorage["quakes"]?
+			quakes = JSON.parse localStorage["quakes"]
+			#if runTimes?
+			#	runTimes.push new Date()
+			#else
+			#	runTimes = [new Date()]
+			#localStorage["runTimes"] = JSON.stringify runTimes
 	
-	#add from feed arg what isn't already in local
+	
+	#sort the data from the feed in desc local time
 	sorted = _.sortBy(feed.entries, (item) -> new Date(item.publishedDate))
 	reversed = sorted.reverse()
 	data = _.groupBy(reversed, (item) -> new Date(item.publishedDate).toLocaleDateString())
 	dates = _.toArray(data)
+	
+
+	#add from data from feed that isn't already in local
+	#should wrap in a if quakes block incase no data in localstorage
+	for date in dates
+		do (date, dates) ->
+			#should see if date even exists, if not add all
+			for quake in date
+				do (quake, date, dates) ->
+					if (!quakes[dates.index(date)][date.indexOf(quake)].link == quake.link)
+						#not sure if not operator here is right, add the thing if it's not there
+	
+	#save quake data back to local
+	localStorage["quakes"] = JSON.stringify dates
 
 	#should save all that back to localstorage
 	renderData(date) for date in dates
