@@ -4,6 +4,10 @@
 #add that data to local
 #display data
 
+
+#should probably just store these in the localstorage as a hunk of key values with the key being the link
+#localstorage['quakes'] = [{"usgs.gov/adf", Object},{"usgs.gov/dfs", Object}] --- key(link), value(serialized obj)
+
 class Quake
 	constructor: (data) ->
 		@latlong = data.contentSnippet.substring(data.contentSnippet.indexOf('UTCLat/Lon: ') + 12, 
