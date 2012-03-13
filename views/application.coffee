@@ -1,5 +1,4 @@
 #remaining work:
-#coloring of rows based on magnitude 5+ light red 7+ red
 #gesture based deletion
 #clean up code --- parseData function in particular
 
@@ -12,6 +11,7 @@ class Quake
 		@link = data.link
 		@date = new Date(data.publishedDate)
 		@title = data.title
+		@magnitude = data.title.substring(0, data.title.indexOf(' -'))
 				
 #html5 storage support check helper
 supports_html5_storage = ->
@@ -46,9 +46,15 @@ renderItem = (item) ->
 	else
 		minutes = item.date.getMinutes()
 	time = "<strong>" + hours + ":" + minutes + "</strong>" + ampm
+	if (item.magnitude >= 7)
+		color = "style='color:Red'"
+	else if (item.magnitude >= 5)
+		color = "style='color:LightCoral'"
+	else
+		color = ""
 	$("#quakes").append "<li><a href='"+ item.link +
 		"'><p class='ui-li-aside ui-li-desc'>" + time + 
-		"</p><h3 class='ui-li-heading'>" + item.title + 
+		"</p><h3 class='ui-li-heading'" + color + ">" + item.title + 
 		"</h3><p class='ui-li-desc'>" + "<strong>LAT</strong> " + 
 		item.lat + " <strong>LONG</strong> " + item.long + "</p></a></li>"
 		
@@ -106,3 +112,5 @@ $ ->
 	
 	$("#refresh").click( () ->
 		loadData())
+	$("ul li").live( 'swiperight', (e) ->
+			alert("swiped"))
