@@ -2,6 +2,7 @@
 #gesture based deletion
 #clean up code --- parseData function in particular
 
+#little object for quake data
 class Quake
 	constructor: (data) ->
 		latlong = data.contentSnippet.substring(data.contentSnippet.indexOf('UTCLat/Lon: ') + 12, 
@@ -31,21 +32,27 @@ getDataFromRSSFeed = (url, callback) ->
 	  	}
 	else
 		callback null
-	
-renderItem = (item) ->
-	if (item.date.getHours() >= 12)
-		hours = item.date.getHours() - 12
+
+#generate a formatted 12 hour time
+formatTime = (date) ->
+	if (date.getHours() >= 12)
+		hours = date.getHours() - 12
 		ampm = "PM"
 		if hours == 0
 			hours = 12
 	else
-		hours = item.date.getHours()
+		hours = date.getHours()
 		ampm = "AM"
-	if (item.date.getMinutes() < 10)
-		minutes = "0" + item.date.getMinutes()
+	if (date.getMinutes() < 10)
+		minutes = "0" + date.getMinutes()
 	else
-		minutes = item.date.getMinutes()
-	time = "<strong>" + hours + ":" + minutes + "</strong>" + ampm
+		minutes = date.getMinutes()
+	"<strong>" + hours + ":" + minutes + "</strong>" + ampm
+
+#rendering an individual quake object	
+renderItem = (item) ->
+	time = formatTime item.date
+		
 	if (item.magnitude >= 7)
 		color = "style='color:Red'"
 	else if (item.magnitude >= 5)
@@ -57,15 +64,16 @@ renderItem = (item) ->
 		"</p><h3 class='ui-li-heading'" + color + ">" + item.title + 
 		"</h3><p class='ui-li-desc'>" + "<strong>LAT</strong> " + 
 		item.lat + " <strong>LONG</strong> " + item.long + "</p></a></li>"
-		
+
+#takes the object with date and array of quakes on that date and renders it		
 renderData = (items) ->
 	$("#quakes").append '<li data-role="list-divider">' + items[0].date.toLocaleDateString() + 
 		'<span class="ui-li-count">' + items.length + '</span></li>'
 	renderItem item for item in items
 	$("#quakes").listview('refresh');
 
+#handles parsing and then rendering data from feed and/or localstorage...or no data
 parseData = (feed) ->
-	
 	if supports_html5_storage()
 		if localStorage["localData"]?
 			localData = JSON.parse localStorage["localData"]
@@ -103,14 +111,19 @@ parseData = (feed) ->
 		$("#quakes").listview('refresh');
 	$.mobile.hidePageLoadingMsg()
 
+#invokes the feed reader with the parser as a callback
 loadData = ->
 	$.mobile.showPageLoadingMsg()
 	getDataFromRSSFeed "http://earthquake.usgs.gov/earthquakes/shakemap/rss.xml", parseData
 	
 $ ->
+	#initial load
 	loadData()
 	
+	#bind the refresh button to reload data
 	$("#refresh").click( () ->
 		loadData())
+	
+	#bind to the swipe for rendering a delete button
 	$("ul li").live( 'swiperight', (e) ->
-			alert("swiped"))
+		alert("swiped"))
